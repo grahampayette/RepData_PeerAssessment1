@@ -6,9 +6,7 @@ output: html_document
 keep_md: true 
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 
 #Introduction/Background on Week 2 Programming Assignment
@@ -30,14 +28,16 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 
 ##Part 0 - load libraries
-```{r , echo=TRUE}
+
+```r
 #load required libraries
 library(ggplot2)
 library(plyr)
 library(lattice)
 ```
 ##Part 1 - load and transform required data
-```{r , echo=TRUE}
+
+```r
 #Initial data grab
 act <- read.csv("c://prog/activity.csv")
 
@@ -47,8 +47,8 @@ act$DateTime<- as.POSIXct(act$date, format="%Y-%m-%d")
 ```
 
 ##Part 2 - Histogram of steps taken each day
-```{r , echo=TRUE}
 
+```r
 #steps with NA removed
 CleanSteps <- act[!is.na(act$steps),]
 
@@ -60,45 +60,65 @@ colnames(SumbyDay) <- c("Date", "Steps")
 hist(SumbyDay$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day")
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+
 ##Part 3 - Report the mean and median # of steps per day
 Question: What is mean total number of steps taken per day?
 
-```{r , echo=TRUE}
+
+```r
 mean_steps <- as.integer(mean(SumbyDay$Steps))
 median_steps <- as.integer(median(SumbyDay$Steps))
 ```
 
 Answer: The mean number of steps per day is:
-```{r , echo=TRUE}
+
+```r
 mean_steps
 ```
 
+```
+## [1] 10766
+```
+
 Answer: The median number of steps per day is:
-```{r , echo=TRUE}
+
+```r
 median_steps
+```
+
+```
+## [1] 10765
 ```
 
 ##Part 4 - Time series plot of average num of steps taken
 Question: What is the average daily activity pattern?
 
-```{r , echo=TRUE}
+
+```r
 intervalTable <- ddply(CleanSteps, .(interval), summarize, Avg = mean(steps))
 # Create the plot
 p <- ggplot(intervalTable, aes(x=interval, y=Avg), xlab = "Interval", ylab="Average Number of Steps")
 p + geom_line()+xlab("Interval")+ylab("Average Number of Steps")+ggtitle("Average Number of Steps per Interval")
 ```
 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png)
+
 Answer: The plot depicts the daily activity pattern. 
 
 ##Part 5 - The 5 minute interval with the max avg steps
 Question: What is the interval with the max average steps?
 
-```{r , echo=TRUE}
 
+```r
 maxSteps <- max(intervalTable$Avg)
 
 ##Which interval
 intervalTable[intervalTable$Avg==maxSteps,1]
+```
+
+```
+## [1] 835
 ```
 
 Answer: Maxsteps = 206 at interval 835
@@ -107,11 +127,17 @@ Answer: Maxsteps = 206 at interval 835
 Strategy: Use interval average by weekday as the substitution value for the missing values
 
 Question: How many values are missing?
-```{r , echo=TRUE}
 
+```r
 #Anwer: the number of missing values in the dataset is:
 nrow(act[is.na(act$steps),])
+```
 
+```
+## [1] 2304
+```
+
+```r
 ## Compute and store the average number of steps per weekday and interval
 AvgSteps <- ddply(CleanSteps, .(interval, day), summarize, Avg = mean(steps))
 
@@ -125,24 +151,35 @@ MergedData_2<- MergedData[,c(6,4,1,2,5)]
 colnames(MergedData_2)<- c("steps", "date", "interval", "day", "DateTime")
 ##Merge the NA averages and non NA data together
 MergedSteps <- rbind(CleanSteps, MergedData_2)
-
-
 ```
 
 ##Part 7 - Histogram of the total number of steps taken each day after missing values are imputed
 Question: Does filling in the NA modify the characteristics of the plot?
 
-```{r , echo=TRUE}
+
+```r
 ##Create sum of steps per date to compare with step 1
 SumbyDay2 <- aggregate(MergedSteps$steps ~ MergedSteps$date, FUN= "sum" )
 colnames(SumbyDay2)<- c("Date", "Steps")
 
 ## Mean of Steps 
 as.integer(mean(SumbyDay2$Steps))
+```
 
+```
+## [1] 10821
+```
+
+```r
 ## Median
 as.integer(median(SumbyDay2$Steps))
+```
 
+```
+## [1] 11015
+```
+
+```r
 ## Creating the histogram of total steps per day
 
 hist(SumbyDay2$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day with NAs Fixed", col="Black")
@@ -150,8 +187,9 @@ hist(SumbyDay2$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day with N
 hist(SumbyDay$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day with NAs Fixed", col="Grey", add=T)
 
 legend("topright", c("Imputed Data", "Non-NA Data"), fill=c("black", "grey") )
-
 ```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png)
 
 Answer: The imputed values modify the average data but do not materially change the composition of the plot.
 
@@ -159,7 +197,8 @@ Answer: The imputed values modify the average data but do not materially change 
 
 Question: Are there differences in activity patterns between weekdays and weekends?
 
-```{r , echo=TRUE}
+
+```r
 ## Create new category based on the days of the week
 MergedSteps$DayCategory <- ifelse(MergedSteps$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
 
@@ -171,5 +210,7 @@ xyplot(Avg~interval|DayCategory, data=intervalTable2, type="l",  layout = c(1,2)
        main="Average Steps per Interval Based on Type of Day", 
        ylab="Average Number of Steps", xlab="Interval")
 ```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png)
 
 Answer: There are differences between weekdays and weekends. People likely have more activity time on the weekend.
